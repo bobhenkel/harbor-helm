@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: harbor-ui-config
+data:
+  SECRET_KEY: "C4WkspdFFJaKZKTr"
+  config: |
+    appname = registry
+    runmode = dev
+    enablegzip = true 
+    [dev]
+    httpport = {{ .Values.ui.port }}
+  pkey: |
+    -----BEGIN RSA PRIVATE KEY-----
+    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
+    -----END RSA PRIVATE KEY-----
+    
+
+

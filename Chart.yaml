@@ -1,0 +1,4 @@
+apiVersion: v1
+description: A Helm chart of Harbor
+name: harbor-chart
+version: 0.1.0

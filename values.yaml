@@ -1,0 +1,32 @@
+core:
+  hostname: harbor.jt.test
+  db_root_password: root123
+  email_host: smtp.mydomain.com
+  email_port: 25
+  email_user: sample_admin@mydomain.com
+  email_password: 
+  email_ssl: 
+  email_from: 
+  email_identity: 
+  admin_password: Harbor12345
+#TODO: generate the secrets dynamically?
+auth:
+  mode: db_auth
+  parms:
+    ldap_url: ldaps://ldap.mydomain.com
+    ldap_searchdn: uid=searchuser,ou=people,dc=mydomain,dc=com
+    ldap_search_pwd: 
+    ldap_base_dn:
+    ldap_filter:
+    ldap_uid: uid
+    ldap_scope: 1
+    ldap_timeout: 3
+ui:
+  port: 80
+  secret: Jmli2htavhMfuBE9
+jobservice:
+  port: 80
+  secret: HHHtjvQS6DlgAENP
+adminserver:
+  port: 80
+  

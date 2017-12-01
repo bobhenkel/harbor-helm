@@ -1,0 +1,134 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: harbor-adminserver-config
+data:
+  SECRET_KEY: "C4WkspdFFJaKZKTr"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adminserver
+spec:
+  ports:
+    - port: 80
+  selector:
+    name: adminserver-apps
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: adminserver
+  labels:
+    name: adminserver
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: adminserver-apps
+    spec:
+      containers:
+      - name: adminserver-app
+        image: vmware/harbor-adminserver:v1.2.0
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: LOG_LEVEL
+            value: "debug"
+          - name: JSON_CFG_STORE_PATH
+            value: "/etc/config/config.json"
+          - name: EXT_ENDPOINT
+            value: "http://{{ .Values.core.hostname }}"
+          - name: AUTH_MODE
+            value: {{ .Values.auth.mode | quote }}
+          - name: SELF_REGISTRATION
+            value: "on"
+          {{ if eq .Values.auth.mode "ldap_auth" }}
+          {{ with .Values.auth.parms }}
+          - name: LDAP_URL
+            value: {{ .ldap_url | quote }}
+          - name: LDAP_SEARCH_DN
+            value: {{ .ldap_search_dn | quote }}
+          - name: LDAP_SEARCH_PWD
+            value: {{ .ldap_search_pw | quote }}
+          - name: LDAP_BASE_DN
+            value: {{ .ldap_base_dn | quote }}
+          - name: LDAP_FILTER
+            value: {{ .ldap_filter | quote }}
+          - name: LDAP_UID
+            value: {{ .ldap_uid | quote }}
+          - name: LDAP_SCOPE
+            value: {{ .ldap_scope | quote }}
+          - name: LDAP_TIMEOUT
+            value: {{ .ldap_timeout | quote }}
+          {{ end }}
+          {{ end }}
+          - name: DATABASE_TYPE
+            value: "mysql"
+          - name: MYSQL_HOST
+            value: "mysql"
+          - name: MYSQL_PORT
+            value: "3306"
+          - name: MYSQL_USR
+            value: "root"
+          - name: MYSQL_PWD
+            value: {{ .Values.core.db_root_password | quote }}
+          - name: MYSQL_DATABASE
+            value: "registry"
+          - name: REGISTRY_URL
+            value: "http://registry:5000"
+          - name: TOKEN_SERVICE_URL
+            value: "http://ui/service/token"
+          - name: EMAIL_HOST
+            value: {{ .Values.core.email_host | quote }}
+          - name: EMAIL_PORT
+            value: {{ .Values.core.email_port | quote }}
+          - name: EMAIL_USR
+            value: {{ .Values.core.email_user | quote }}
+          - name: EMAIL_PWD
+            value: {{ .Values.core.email_password | quote }}
+          - name: EMAIL_SSL
+            value: {{ .Values.core.email_ssl | quote }}
+          - name: EMAIL_FROM
+            value: {{ .Values.core.email_from | quote }}
+          - name: EMAIL_IDENTITY
+            value: {{ .Values.core.email_identity | quote }}
+          - name: HARBOR_ADMIN_PASSWORD
+            value: {{ .Values.core.admin_password | quote }}
+          - name: PROJECT_CREATION_RESTRICTION
+            value: "everyone"
+          - name: VERIFY_REMOTE_CERT
+            value: "on"
+          - name: MAX_JOB_WORKERS
+            value: "3"
+          - name: UI_SECRET
+            value: {{ .Values.ui.secret | quote }}
+          - name: JOBSERVICE_SECRET
+            value: {{ .Values.jobservice.secret | quote }}
+          - name: TOKEN_EXPIRATION
+            value: "30"
+          - name: CFG_EXPIRATION
+            value: "5"
+          - name: GODEBUG
+            value: "netdns=cgo"
+          - name: ADMIRAL_URL
+            value: "NA"
+          - name: WITH_NOTARY
+            value: "False"
+          - name: RESET
+            value: "false"
+          #Workaround the volume API issue.
+#          - name: IMAGE_STORE_PATH
+#            value: "/"
+        ports:
+        - containerPort: {{ .Values.adminserver.port }}
+        volumeMounts:
+        - name: config
+          mountPath: /etc/adminserver/
+      volumes:
+      - name: config
+        configMap:
+          name: harbor-adminserver-config
+          items:
+          - key: SECRET_KEY
+            path: key
